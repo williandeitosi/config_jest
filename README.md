@@ -1,4 +1,4 @@
-# config jest in NEXT 14 (INICIANTES)
+# Configurar o Jest no NEXT 14 (INICIANTES)
 
 ## primeiro inicie um projeto next
 
