@@ -1,98 +1,150 @@
-# Configurar o Jest no NEXT 14 (INICIANTES)
+# Configuração de Next.js 14 com TypeScript e Jest
 
-## primeiro inicie um projeto next
+Este guia fornece instruções passo a passo para configurar um projeto Next.js 14 com TypeScript, incluindo a configuração do Jest e React Testing Library para testes.
 
-### [Iniciar Next.js](https://nextjs.org/docs/getting-started/installation)
+## Pré-requisitos
 
-- ~~~bash
-    npx create-next-app@latest 
-    ~~~
+- Node.js (versão 14 ou superior)
+- npm (normalmente vem com Node.js)
 
-se quiser seguir passo a passo para ==> [Instalar o Jest](https://nextjs.org/docs/app/building-your-application/testing/jest) 
+## Passo 1: Criar um novo projeto Next.js com TypeScript
 
-- ~~~bash
-    npm install -D jest jest-environment-jsdom @testing-library/react @testing-library/jest-dom
-    ~~~
-- ~~~bash
-    npm init jest@latest
-    ~~~
-    1. yes
-    2. yes
-    3. jsdom
-    4. no
-    5. v8
-    6. no
+```bash
+npx create-next-app@latest meu-projeto
+cd meu-projeto
+```
 
+Selecione as seguintes opções durante a criação do projeto:
+- Would you like to use TypeScript? › Yes
+- Would you like to use ESLint? › Yes
+- Would you like to use Tailwind CSS? › (Sua preferência)
+- Would you like to use `src/` directory? › Yes
+- Would you like to use App Router? › Yes
+- Would you like to customize the default import alias? › No
 
+## Passo 2: Instalar dependências de teste
 
-troque o jest.config.ts por isso:
+```bash
+npm install --save-dev jest @testing-library/react @testing-library/jest-dom @types/jest jest-environment-jsdom
+```
 
-~~~typescript
-    import type { Config } from 'jest'
-import nextJest from 'next/jest.js'
- 
+## Passo 3: Configurar o Jest
+
+Crie um arquivo `jest.config.js` na raiz do projeto:
+
+```javascript
+const nextJest = require('next/jest')
+
 const createJestConfig = nextJest({
-  // Provide the path to your Next.js app to load next.config.js and .env files in your test environment
   dir: './',
 })
- 
-// Add any custom config to be passed to Jest
-const config: Config = {
-  coverageProvider: 'v8',
-  testEnvironment: 'jsdom',
-  // Add more setup options before each test is run
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
-  preset: 'ts-jest',
+
+const customJestConfig = {
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  testEnvironment: 'jest-environment-jsdom',
+  moduleNameMapper: {
+    '^@/components/(.*)$': '<rootDir>/src/components/$1',
+    '^@/pages/(.*)$': '<rootDir>/src/pages/$1',
+  },
 }
- 
-// createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
-export default createJestConfig(config)
-~~~
 
-#### installe este pacote:
+module.exports = createJestConfig(customJestConfig)
+```
 
-* ~~~bash
-    npm i ts-jest
-    ~~~
+## Passo 4: Criar arquivo de setup do Jest
 
-#### crie um arquivo  ```jest.setup.ts``` e coloque isto:
+Crie um arquivo `jest.setup.js` na raiz do projeto:
 
-* ~~~bash
-    import '@testing-library/jest-dom'
-    ~~~
-#### adicione no ```scripts``` dentro do  ```package.json``` :
-* ~~~bash
+```javascript
+import '@testing-library/jest-dom'
+```
+
+## Passo 5: Atualizar tsconfig.json
+
+Adicione as seguintes linhas ao seu `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "types": ["jest", "@testing-library/jest-dom"]
+  }
+}
+```
+
+## Passo 6: Atualizar package.json
+
+Adicione os seguintes scripts ao seu `package.json`:
+
+```json
+{
+  "scripts": {
     "test": "jest",
     "test:watch": "jest --watch"
-    ~~~
+  }
+}
+```
 
-#### installe este pacote:
+## Passo 7: Criar um teste de exemplo
 
-* ~~~bash
-    npm i ts-node -D
-    ~~~
+Crie uma pasta `__tests__` na raiz do projeto e adicione um arquivo `Home.test.tsx`:
 
-## Dentro da pasta src crie a pasta ```__tests__```
-* dentro dela pode criar seus arquivos de testes Ex: ```page.spect.tsx``` ou ```page.test.tsx```
+```typescript
+import { render, screen } from '@testing-library/react'
+import Home from '../src/app/page'
 
-#### instale este pacote
-* ~~~bash
-    npm i @types/jest -D
-    ~~~
-#### instale este pacote
-* ~~~bash
-    npm i -D eslint-plugin-jest-dom eslint-plugin-testing-library
-    ~~~
+describe('Home', () => {
+  it('renders a heading', () => {
+    render(<Home />)
+    const heading = screen.getByRole('heading', { name: /welcome to next\.js!/i })
+    expect(heading).toBeInTheDocument()
+  })
+})
+```
 
-### no arquivo ```.eslintrc.json``` adicione este dois: 
+## Passo 8: Executar os testes
 
- * ~~~json
-    "extends": [
-        "next/core-web-vitals",
-        "plugin:jest-dom/recommended",
-        "plugin:testing-library/react"
-    ]
-    ~~~
-### de um restar no eslint
- 1. precione ```ctrl + shift + p```
- 2. digite: eslint restart
+Para executar os testes uma vez:
+
+```bash
+npm test
+```
+
+Para executar os testes em modo de observação:
+
+```bash
+npm run test:watch
+```
+
+## Estrutura do Projeto
+
+```
+meu-projeto/
+├── __tests__/
+│   └── Home.test.tsx
+├── src/
+│   ├── app/
+│   │   └── page.tsx
+│   ├── components/
+│   └── pages/
+├── jest.config.js
+├── jest.setup.js
+├── next.config.js
+├── package.json
+├── tsconfig.json
+└── README.md
+```
+
+## Dicas Adicionais
+
+1. Sempre coloque seus testes próximos aos componentes que eles testam.
+2. Use `describe` para agrupar testes relacionados.
+3. Use `it` ou `test` para descrever comportamentos específicos.
+4. Utilize os utilitários do `@testing-library/react` para interagir com seus componentes nos testes.
+
+## Recursos Úteis
+
+- [Documentação do Next.js](https://nextjs.org/docs)
+- [Documentação do Jest](https://jestjs.io/docs/getting-started)
+- [Documentação do React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
+
+Lembre-se de atualizar regularmente suas dependências e adaptar sua configuração conforme necessário à medida que seu projeto cresce.
